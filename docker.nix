@@ -6,11 +6,6 @@
 let
     currentDir = ./.;
     
-    appFolder = pkgs.copyPath {
-      src = currentDir;
-      name = "ac2";
-    };
-
     nixFromDockerHub = pkgs.dockerTools.pullImage {
     imageName = "nixos/nix";
     imageDigest = "sha256:85299d86263a3059cf19f419f9d286cc9f06d3c13146a8ebbb21b3437f598357";
@@ -18,6 +13,7 @@ let
     finalImageTag = "2.2.1";
     finalImageName = "nix";
   };
+
     pypdftk = pkgs.python3Packages.buildPythonPackage rec {
     pname = "pypdftk";
     version = "0.5";
@@ -34,13 +30,14 @@ pkgs.dockerTools.buildImage {
   tag = "dev";
   fromImage = nixFromDockerHub;
   contents = [ 
+	currentDir
 	pkgs.python3
 	pkgs.python3Packages.django
 	pkgs.pdftk
 	pypdftk
 ];
   config = {
-    Cmd = [ "${pkgs.python3}/bin/python3" "${appFolder}/manage.py" "runserver" "127.0.0:8000" ];
+    Cmd = [ "echo" "HelloWorld" ];
     ExposedPorts = {
       "8000/tcp" = {};
     };
