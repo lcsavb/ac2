@@ -24,21 +24,28 @@ let
     };
     doCheck = false;
   };
+
+    pythonEnv = pkgs.python311.withPackages (ps: [
+      ps.pip
+      ps.django
+      pypdftk
+  ]);
+
 in
+
 pkgs.dockerTools.buildImage {
   name = "ac2";
   tag = "dev";
   fromImage = nixFromDockerHub;
   contents = [ 
 	currentDir
-	pkgs.python3
-	pkgs.python3Packages.django
+	pkgs.bash
+	pythonEnv
 	pkgs.pdftk
-	pypdftk
 ];
   config = {
-    Cmd = [ "echo" "HelloWorld" ];
-    ExposedPorts = {
+    Cmd = [ "/bin/sh" "-c" "./startup.sh" ];    
+      ExposedPorts = {
       "8000/tcp" = {};
     };
   };
