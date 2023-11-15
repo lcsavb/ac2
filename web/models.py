@@ -6,6 +6,10 @@ from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin, BaseU
 from .managers import CustomUserManager
 from django.db import models
 
+# All of this will change after I model the data as it is planned
+# So, I have to have a definitive model before going on
+
+
 JSONField = models.JSONField
 BooleanField = models.BooleanField
 
