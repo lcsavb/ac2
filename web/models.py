@@ -1,34 +1,46 @@
 from django.db import models
 from django.conf import settings
-from django.contrib.auth.models import AbstractBaseUser
-from django.contrib.auth.models import PermissionsMixin
 from django.utils.translation import gettext_lazy as _
 from django.utils import timezone
+from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin, BaseUserManager
 from .managers import CustomUserManager
+from django.db import models
 
-class User(AbstractBaseUser, PermissionsMixin):
-    # The base user is always the clinic, however I am using a one to one relationship due to django's authentication system.
-    email = models.EmailField(_('email address'), unique=True)
-    is_staff = models.BooleanField(default=False)
-    is_active = models.BooleanField(default=True)
-    date_joined = models.DateTimeField(default=timezone.now)
-    avatar = models.ImageField(upload_to='avatars/', null=True, blank=True)
-    clinic = models.OneToOneField(Clinic, on_delete=models.CASCADE, related_name='user')
+JSONField = models.JSONField
+BooleanField = models.BooleanField
 
-    USERNAME_FIELD = 'email'
+class Clinic(models.Model):
+    name = models.CharField(max_length=100)
+    # SUS means Unified Health System and the "SUS number" (Cartão Nacional de Saúde) is a unique number for each entity or person registered in the system. There is an API to retrieve the data and check it (DataSUS).
+    sus_number = models.CharField(max_length=7)
+    address = models.CharField(max_length=100)
+    address_number = models.CharField(max_length=6)
+    city = models.CharField(max_length=100)
+    neighborhood = models.CharField(max_length=100)
+    zip_code = models.CharField(max_length=9)
+    phone = models.CharField(max_length=100)
+    doctors = models.ManyToManyField('Doctor', through='Issuer')
+    patients = models.ManyToManyField('Patient')
 
-    objects = CustomUserManager()
+
+#
+
+class Disease(models.Model):
+    icd = models.CharField(max_length=6, unique=True)
+    name = models.CharField(max_length=100)
+    protocol = models.ForeignKey('Protocol', on_delete=models.CASCADE)
 
     def __str__(self):
-        return self.email
+        return f'{self.icd} - {self.name}'
+
 
 class Doctor(models.Model):
     name = models.CharField(max_length=100)
     council_number = models.CharField(max_length=100)
     sus_number = models.CharField(max_length=100)
     speciality = models.CharField(max_length=100)
-    clinics = models.ManyToManyField(Clinic, through='Issuer', related_name='doctors')
-    patients = models.ManyToManyField(Patient, through='PatientCareLink', related_name='doctors')
+    clinics = models.ManyToManyField(Clinic, through='Issuer')
+    patients = models.ManyToManyField('Patient', through='PatientCareLink')
 
     def __str__(self):
         return self.council_number
@@ -52,7 +64,7 @@ class Patient(models.Model):
     zip_code = models.CharField(max_length=9)
     telephone = models.CharField(max_length=11)
     telephone_2 = models.CharField(max_length=11)
-    user = models.ManyToManyField(settings.AUTH_USER_MODEL, related_name='patients')
+    user = models.ManyToManyField(settings.AUTH_USER_MODEL)
 
     def __str__(self):
         return self.social_security_number
@@ -62,28 +74,26 @@ class Medication(models.Model):
     dosage = models.CharField(max_length=100)
     formulation = models.CharField(max_length=100, blank=True)
 
-    # Here I think I should add  the FIHR id of the medication.
-
     def __str__(self):
         return f'{self.name} - {self.dosage} - {self.formulation}'
 
 class Prescription(models.Model):
     anamnesis = models.TextField(max_length=1000)
-    disease = models.ForeignKey(Disease, on_delete=models.CASCADE)
-    medications = models.ManyToManyField(Medication, related_name='prescriptions')
+    disease = models.ForeignKey('Disease', on_delete=models.CASCADE)
+    medications = models.ManyToManyField('Medication', related_name='prescriptions')
     prescription = JSONField()
     previous_treatment = BooleanField(default=False)
     previous_medications = models.TextField(max_length=1000)
     date = models.DateField(default=timezone.now)
-    filled_by = models.CharField(choices=(('P', "Patient"), ('C', "Caregiver"),('M', 'Mother'), ('D', 'Doctor'), max_length=128)
-    patient = models.ForeignKey(Patients, on_delete=models.CASCADE)
-    issuer = models.ForeignKey(Issuer, on_delete=models.CASCADE)
-    medication = models.ManyToManyField(Medication, related_name='prescriptions')
+    filled_by = models.CharField(max_length=128, choices=(('P', "Patient"), ('C', "Caregiver"), ('M', 'Mother'), ('D', 'Doctor')))
+    patient = models.ForeignKey('Patient', on_delete=models.CASCADE)
+    issuer = models.ForeignKey('Issuer', on_delete=models.CASCADE)
+    medication = models.ManyToManyField(Medication)
     conditional_data = JSONField()
-    patient = models.ForeignKey(Patient, on_delete=models.CASCADE, related_name='prescriptions')
-    issuer = models.ForeignKey(Issuer, on_delete=models.CASCADE, related_name='prescriptions')
-    doctor = models.ForeignKey(Doctor, on_delete=models.PROTECT, related_name='prescriptions')
-    clinic = models.ForeignKey(Clinic, on_delete=models.CASCADE, related_name='prescriptions')
+    patient = models.ForeignKey('Patient', on_delete=models.CASCADE)
+    issuer = models.ForeignKey('Issuer', on_delete=models.CASCADE)
+    doctor = models.ForeignKey('Doctor', on_delete=models.PROTECT)
+    clinic = models.ForeignKey('Clinic', on_delete=models.CASCADE)
 
     def __str__(self):
         return f'{self.patient} - {self.date} - {self.diagnosis}'
@@ -91,26 +101,12 @@ class Prescription(models.Model):
 class Protocol(models.Model):
     name = models.CharField(max_length=100)
     pdf = models.CharField(max_length=600)
-    medications = models.ManyToManyField(Medication, related_name='protocols')
+    medications = models.ManyToManyField(Medication)
     conditional_data = JSONField()
-    prescription = models.ManyToManyField(Prescription, related_name='protocols')
+    prescription = models.ManyToManyField(Prescription)
 
     def __str__(self):
         return f'{self.name} - {self.pdf}'
-
-class Clinic(models.Model):
-    name = models.CharField(max_length=100)
-    # SUS means Unified Health System and the "SUS number" (Cartão Nacional de Saúde) is a unique number for each entity or person registered in the system. There is an API to retrieve the data and check it (DataSUS).
-    sus_number = models.CharField(max_length=7)
-    address = models.CharField(max_length=100)
-    address_number = models.CharField(max_length=6)
-    city = models.CharField(max_length=100)
-    neighborhood = models.CharField(max_length=100)
-    zip_code = models.CharField(max_length=9)
-    phone = models.CharField(max_length=100)
-    # I forgot what related_name does. I think it is used to access the clinics from the doctor model.
-    doctors = models.ManyToManyField(Doctor, through='Issuer', related_name='clinics')
-    patients = models.ManyToManyField(Patient)
 
 class PatientCareLink(models.Model):
     # Through this model, we will be able to link a patient to a doctor and a clinic
@@ -122,11 +118,9 @@ class PatientCareLink(models.Model):
 class Issuer(models.Model):
     doctor = models.ForeignKey(Doctor, on_delete=models.PROTECT)
     clinic = models.ForeignKey(Clinic, on_delete=models.PROTECT)
-    patient = models.ManyToManyField(Patient, through='Prescription', through_fields=('issuer', 'patient'), related_name='issuer')
+    patient = models.ManyToManyField(Patient, through='Prescription', through_fields=('issuer', 'patient'))
 
 class Visit(models.Model):
     date = models.DateField()
     time = models.TimeField()
-    patient = models.ForeignKey(Patient, on_delete=models.PROTECT)
-    link = models.ManytoOneField(PatientCareLink, on_delete=models.CASCADE)
-
+    link = models.ForeignKey(PatientCareLink, on_delete=models.PROTECT)
