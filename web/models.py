@@ -2,58 +2,14 @@ from django.db import models
 from django.conf import settings
 from django.utils.translation import gettext_lazy as _
 from django.utils import timezone
-from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin, BaseUserManager, Group, Permission
-from .managers import CustomUserManager
 from django.db import models
-
-# All of this will change after I model the data as it is planned
-# So, I have to have a definitive model before going on
-
 
 JSONField = models.JSONField
 BooleanField = models.BooleanField
 
-class CustomUser(AbstractBaseUser, PermissionsMixin):
-    email = models.EmailField(_('email address'), unique=True)
-    is_staff = models.BooleanField(default=False)
-    is_active = models.BooleanField(default=True)
-    date_joined = models.DateTimeField(default=timezone.now)
-    issuer = models.OneToOneField('Issuer', on_delete=models.CASCADE, null=True, blank=True)
-
-    USERNAME_FIELD = 'email'
-
-    objects = CustomUserManager()
-
-    def __str__(self):
-        return self.email
-
-    groups = models.ManyToManyField(
-        Group,
-        verbose_name=_('groups'),
-        blank=True,
-        help_text=_('The groups this user belongs to. A user will get all permissions granted to each of their groups.'),
-        related_name="customuser_groups",
-        related_query_name="customuser",
-    )
-    user_permissions = models.ManyToManyField(
-        Permission,
-        verbose_name=_('user permissions'),
-        blank=True,
-        help_text=_('Specific permissions for this user.'),
-        related_name="customuser_user_permissions",
-        related_query_name="customuser",
-    )
-
-    def __str__(self):
-        return self.email
-
-    class Meta:
-        verbose_name = _('custom user')
-        verbose_name_plural = _('custom users')
-
 class Clinic(models.Model):
     name = models.CharField(max_length=100)
-    # SUS means Unified Health System and the "SUS number" (Cartão Nacional de Saúde) is a unique number for each entity or person registered in the system. There is an API to retrieve the data and check it (DataSUS).
+    #API (DataSUS) ---> https://apidadosabertos.saude.gov.br/v1/#/CNES/get_cnes_estabelecimentos. 
     sus_number = models.CharField(max_length=7)
     address = models.CharField(max_length=100)
     address_number = models.CharField(max_length=6)
