@@ -3,6 +3,7 @@ from django.conf import settings
 from django.utils.translation import gettext_lazy as _
 from django.utils import timezone
 from django.db import models
+from users.models import Issuer
 
 JSONField = models.JSONField
 BooleanField = models.BooleanField
@@ -17,7 +18,7 @@ class Clinic(models.Model):
     neighborhood = models.CharField(max_length=100)
     zip_code = models.CharField(max_length=9)
     phone = models.CharField(max_length=100)
-    doctors = models.ManyToManyField('Doctor', through='Issuer')
+    doctors = models.ManyToManyField('Doctor', through=Issuer)
     patients = models.ManyToManyField('Patient')
 
 class Disease(models.Model):
@@ -34,7 +35,7 @@ class Doctor(models.Model):
     council_number = models.CharField(max_length=100)
     sus_number = models.CharField(max_length=100)
     speciality = models.CharField(max_length=100)
-    clinics = models.ManyToManyField(Clinic, through='Issuer')
+    clinics = models.ManyToManyField(Clinic, through=Issuer)
     patients = models.ManyToManyField('Patient', through='PatientCareLink')
 
     def __str__(self):
@@ -75,18 +76,15 @@ class Medication(models.Model):
 class Prescription(models.Model):
     anamnesis = models.TextField(max_length=1000)
     disease = models.ForeignKey('Disease', on_delete=models.CASCADE)
-    medications = models.ManyToManyField('Medication', related_name='prescriptions')
-    prescription = JSONField()
+    posology = JSONField()
     previous_treatment = BooleanField(default=False)
     previous_medications = models.TextField(max_length=1000)
     date = models.DateField(default=timezone.now)
     filled_by = models.CharField(max_length=128, choices=(('P', "Patient"), ('C', "Caregiver"), ('M', 'Mother'), ('D', 'Doctor')))
     patient = models.ForeignKey('Patient', on_delete=models.CASCADE)
-    issuer = models.ForeignKey('Issuer', on_delete=models.CASCADE)
+    issuer = models.ForeignKey(Issuer, on_delete=models.CASCADE)
     medication = models.ManyToManyField(Medication)
     conditional_data = JSONField()
-    patient = models.ForeignKey('Patient', on_delete=models.CASCADE)
-    issuer = models.ForeignKey('Issuer', on_delete=models.CASCADE)
     doctor = models.ForeignKey('Doctor', on_delete=models.PROTECT)
     clinic = models.ForeignKey('Clinic', on_delete=models.CASCADE)
 
@@ -96,7 +94,7 @@ class Prescription(models.Model):
 class Protocol(models.Model):
     name = models.CharField(max_length=100)
     pdf = models.CharField(max_length=600)
-    medications = models.ManyToManyField(Medication)
+    medications = models.ManyToManyField('Medication')
     conditional_data = JSONField()
     prescription = models.ManyToManyField(Prescription)
 
@@ -109,11 +107,6 @@ class PatientCareLink(models.Model):
     doctor = models.ForeignKey(Doctor, on_delete=models.PROTECT)
     clinic = models.ForeignKey(Clinic, on_delete=models.PROTECT)
     associated_date = models.DateField(default=timezone.now)
-
-class Issuer(models.Model):
-    doctor = models.ForeignKey(Doctor, on_delete=models.PROTECT)
-    clinic = models.ForeignKey(Clinic, on_delete=models.PROTECT)
-    patient = models.ManyToManyField(Patient, through='Prescription', through_fields=('issuer', 'patient'))
 
 class Visit(models.Model):
     date = models.DateField()
