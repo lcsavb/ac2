@@ -25,7 +25,7 @@
   </head>
   <body>
     <nav class="navbar navbar-expand-md navbar-dark bg-dark fixed-top">
-  <a class="navbar-brand" href="">AutoCusto</a>
+  <a class="navbar-brand" href="{% url 'web-home' %}">AutoCusto</a>
   <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarsExampleDefault" aria-controls="navbarsExampleDefault" aria-expanded="false" aria-label="Toggle navigation">
     <span class="navbar-toggler-icon"></span>
   </button>
@@ -59,14 +59,17 @@
         </div>
       </li>
 
+      <li class="nav-item">
+        <a class="nav-link" href="{% url 'users:profile' %}">Perfil<span class="oi oi-account-profile text-top"></span></a>
+      </li>
 
       <li class="nav-item">
-        <a class="nav-link" href="">Logout <span class="oi oi-account-logout text-top"></span></a>
+        <a class="nav-link" href="{% url 'users:logout' %}">Logout <span class="oi oi-account-logout text-top"></span></a>
       </li>
 
       {% else %}
       <li class="nav-item">
-        <a class="nav-link" href="">Login <span class="oi oi-account-login text-top"></span></a>
+        <a class="nav-link" href="{% url 'users:login' %}">Login <span class="oi oi-account-login text-top"></span></a>
       </li>
       {% endif %}
 
