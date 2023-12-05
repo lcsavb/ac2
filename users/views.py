@@ -1,7 +1,9 @@
 from django.shortcuts import render, redirect
 from django.contrib import messages
-from .forms import UserRegisterForm, CreateClinic
 from django.contrib.auth.decorators import login_required
+from .forms import UserRegisterForm, CreateClinic
+from .models import Issuer
+
 
 def sign_up(request):
     '''Afterwards the Clinic and Doctor are created. They are 
@@ -12,7 +14,7 @@ def sign_up(request):
     if request.method == 'POST':
         form = UserRegisterForm(request.POST)
         if form.is_valid():
-            form.save()
+            user = form.save()
             email = form.cleaned_data.get('email')
             messages.success(request, f'Conta criada: {email}!')
             return redirect('users:login')

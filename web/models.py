@@ -3,23 +3,10 @@ from django.conf import settings
 from django.utils.translation import gettext_lazy as _
 from django.utils import timezone
 from django.db import models
-from users.models import Issuer
+from users import models as user_models
 
 JSONField = models.JSONField
 BooleanField = models.BooleanField
-
-class Clinic(models.Model):
-    name = models.CharField(max_length=100)
-    #API (DataSUS) ---> https://apidadosabertos.saude.gov.br/v1/#/CNES/get_cnes_estabelecimentos. 
-    sus_number = models.CharField(max_length=7, primary_key=True)
-    address = models.CharField(max_length=100)
-    address_number = models.CharField(max_length=6)
-    city = models.CharField(max_length=100)
-    neighborhood = models.CharField(max_length=100)
-    zip_code = models.CharField(max_length=9)
-    phone = models.CharField(max_length=100)
-    doctors = models.ManyToManyField('Doctor', through=Issuer, related_name='clinics')
-    patients = models.ManyToManyField('Patient', related_name='clinics', through='PatientCareLink')
 
 class Disease(models.Model):
     icd = models.CharField(max_length=6, unique=True)
@@ -28,16 +15,6 @@ class Disease(models.Model):
 
     def __str__(self):
         return f'{self.icd} - {self.name}'
-
-class Doctor(models.Model):
-    name = models.CharField(max_length=100)
-    council_number = models.CharField(max_length=100)
-    sus_number = models.CharField(max_length=100)
-    speciality = models.CharField(max_length=100)
-    patients = models.ManyToManyField('Patient', through='PatientCareLink', related_name='doctors')
-
-    def __str__(self):
-        return self.council_number
 
 class Patient(models.Model):
     name = models.CharField(max_length=100)
@@ -80,7 +57,7 @@ class Prescription(models.Model):
     date = models.DateField(default=timezone.now)
     filled_by = models.CharField(max_length=128, choices=(('P', "Patient"), ('C', "Caregiver"), ('M', 'Mother'), ('D', 'Doctor')))
     patient = models.ForeignKey('Patient', on_delete=models.PROTECT)
-    issuer = models.ForeignKey(Issuer, on_delete=models.PROTECT, related_name='prescriptions')
+    issuer = models.ForeignKey(user_models.Issuer, on_delete=models.PROTECT, related_name='prescriptions')
     medication = models.ManyToManyField(Medication, related_name='prescriptions')
     conditional_data = JSONField()
     protocol = models.ForeignKey('Protocol', on_delete=models.PROTECT)
@@ -101,8 +78,8 @@ class Protocol(models.Model):
 class PatientCareLink(models.Model):
     # Through this model, we will be able to link a patient to a doctor and a clinic
     patient = models.ForeignKey(Patient, on_delete=models.PROTECT)
-    clinic = models.ForeignKey(Clinic, on_delete=models.PROTECT)
-    doctor = models.ForeignKey(Doctor, on_delete=models.PROTECT)
+    clinic = models.ForeignKey(user_models.Clinic, on_delete=models.PROTECT)
+    doctor = models.ForeignKey(user_models.Doctor, on_delete=models.PROTECT)
     associated_date = models.DateField(default=timezone.now)
 
 class Visit(models.Model):

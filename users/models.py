@@ -5,8 +5,32 @@ from django.utils.translation import gettext_lazy as _
 from django.utils import timezone
 
 class Issuer(models.Model):
-    doctor = models.ForeignKey('web.Doctor', on_delete=models.PROTECT)
-    clinic = models.ForeignKey('web.Clinic', on_delete=models.PROTECT)
+    doctor = models.ForeignKey('Doctor', on_delete=models.PROTECT, null=True)
+    clinic = models.ForeignKey('Clinic', on_delete=models.PROTECT, null=True)
+
+class Clinic(models.Model):
+    name = models.CharField(max_length=100)
+    #API (DataSUS) ---> https://apidadosabertos.saude.gov.br/v1/#/CNES/get_cnes_estabelecimentos. 
+    sus_number = models.CharField(max_length=7, primary_key=True)
+    address = models.CharField(max_length=100)
+    address_number = models.CharField(max_length=6)
+    city = models.CharField(max_length=100)
+    neighborhood = models.CharField(max_length=100)
+    zip_code = models.CharField(max_length=9)
+    phone = models.CharField(max_length=100)
+    doctors = models.ManyToManyField('Doctor', through=Issuer, related_name='clinics')
+    patients = models.ManyToManyField('web.Patient', related_name='clinics', through='web.PatientCareLink')
+
+class Doctor(models.Model):
+    name = models.CharField(max_length=100)
+    council_number = models.CharField(max_length=100)
+    sus_number = models.CharField(max_length=100)
+    speciality = models.CharField(max_length=100)
+    patients = models.ManyToManyField('web.Patient', through='web.PatientCareLink', related_name='doctors')
+
+    def __str__(self):
+        return self.council_number
+
 
 class CustomUser(AbstractBaseUser, PermissionsMixin):
     email = models.EmailField(_('email address'), unique=True)

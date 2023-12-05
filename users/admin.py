@@ -1,8 +1,8 @@
 from django.contrib import admin
-from .models import CustomUser, Issuer
+from .models import CustomUser, Issuer, Doctor, Clinic
 
 # List of models
-models = [CustomUser, Issuer]
+models = [CustomUser, Issuer, Doctor, Clinic]
 
 # Loop to create an admin class and register each model
 for model in models:

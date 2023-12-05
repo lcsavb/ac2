@@ -3,8 +3,7 @@ from django.forms import ModelForm
 from django.contrib.auth.forms import UserCreationForm
 from django.utils.translation import gettext_lazy as _
 from .models import CustomUser
-from users.models import Issuer
-from web.models import Clinic
+from users.models import Issuer, Clinic, Doctor
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Layout, Fieldset, Row, Column, Field, Submit
 
@@ -17,7 +16,7 @@ class CreateClinic(ModelForm):
     def __init__(self, *args, **kwargs):
         super(CreateClinic, self).__init__(*args,**kwargs)
         self.helper = FormHelper()
-        self.helper.form_id = 'clinica-cadastro'
+        self.helper.form_id = 'create_clinic'
         self.helper.form_class = 'blueForms'
         self.helper.form_method = 'POST'
         self.helper.form_action = ''
