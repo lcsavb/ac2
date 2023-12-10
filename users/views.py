@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from .forms import UserRegisterForm, CreateClinic
+from .forms import UserRegisterForm, CreateClinic, CreateDoctor
 from .models import Issuer
 
 
@@ -34,12 +34,26 @@ def profile(request):
 def create_clinic(request):
     form = CreateClinic()
     if request.method == 'POST':
-        form = CreateClinic(request.POST)
+        form = CreateClinic(request.POST, user=request.user)
         if form.is_valid():
             form.save()
             messages.success(request, f'Clínica cadastrada com sucesso!')
             return redirect('users:profile')
     else:
         form = CreateClinic()
+
+    return render(request, 'users/create_clinic.html', {'form': form})
+
+@login_required
+def create_doctor(request):
+    form = CreateDoctor()
+    if request.method == 'POST':
+        form = CreateDoctor(request.POST)
+        if form.is_valid():
+            form.save()
+            messages.success(request, f'Médico cadastrada com sucesso!')
+            return redirect('users:profile')
+    else:
+        form = CreateDoctor()
 
     return render(request, 'users/create_clinic.html', {'form': form})

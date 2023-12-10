@@ -1,7 +1,7 @@
-
 from django.forms import ModelForm
 from django.contrib.auth.forms import UserCreationForm
 from django.utils.translation import gettext_lazy as _
+from django.db import transaction
 from .models import CustomUser
 from users.models import Issuer, Clinic, Doctor
 from crispy_forms.helper import FormHelper
@@ -14,6 +14,7 @@ class UserRegisterForm(UserCreationForm):
 
 class CreateClinic(ModelForm):
     def __init__(self, *args, **kwargs):
+        self.user = kwargs.pop('user', None)
         super(CreateClinic, self).__init__(*args,**kwargs)
         self.helper = FormHelper()
         self.helper.form_id = 'create_clinic'
@@ -42,6 +43,14 @@ class CreateClinic(ModelForm):
             )
         )
 
+    @transaction.atomic
+    def save(self, commit=True):
+        clinic = super().save(commit=False)
+        if commit:
+            clinic.save()
+            self.user.clinic.add(clinic)  # Add clinic to logged-in user
+        return clinic
+
     class Meta:
         model = Clinic
         fields = ['sus_number', 'name', 'address',
@@ -59,3 +68,45 @@ class CreateClinic(ModelForm):
 
         }
         localized_fields = '__all__'
+
+class CreateDoctor(ModelForm):
+        def __init__(self, *args, **kwargs):
+            super(CreateDoctor, self).__init__(*args,**kwargs)
+            self.helper = FormHelper()
+            self.helper.form_id = 'create_doctor'
+            self.helper.form_class = 'blueForms'
+            self.helper.form_method = 'POST'
+            self.helper.form_action = ''
+            self.helper.add_input(Submit('submit', 'Cadastrar'))
+            self.helper.layout = Layout(
+                Row(
+                    Column('name',css_class='form-group col-6 mb-0'),
+                    Column('council_number',css_class='form-group col-2 mb-0'),
+                    Column('sus_number',css_class='form-group col-4 mb-0'),
+                    css_class='form-row'
+                ),
+                Fieldset(
+                    'Especialidade',
+                    Row(
+                        Column('speciality',css_class='form-group col-6 mb-0'),
+                    ),
+                )
+            )
+
+        @transaction.atomic
+        def save(self, commit=True):
+            doctor = super().save(commit=False)
+            if commit:
+                doctor.save()
+            return doctor
+
+        class Meta:
+            model = Doctor
+            fields = ['name', 'council_number', 'sus_number', 'speciality']
+            labels = {
+                'name': _('Nome completo'),
+                'council_number': _('CRM'),
+                'sus_number': _('Cartão Nacional de Saúde (CNS)'),
+                'speciality': _('Especialidade')
+            }
+            localized_fields = '__all__'

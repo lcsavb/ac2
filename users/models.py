@@ -18,8 +18,11 @@ class Clinic(models.Model):
     neighborhood = models.CharField(max_length=100)
     zip_code = models.CharField(max_length=9)
     phone = models.CharField(max_length=100)
-    doctors = models.ManyToManyField('Doctor', through=Issuer, related_name='clinics')
+    doctors = models.ManyToManyField('Doctor', through='Issuer', related_name='clinics')
     patients = models.ManyToManyField('web.Patient', related_name='clinics', through='web.PatientCareLink')
+
+    def __str__(self):
+        return f"{self.name} - {self.sus_number}"
 
 class Doctor(models.Model):
     name = models.CharField(max_length=100)
@@ -37,6 +40,7 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
     is_staff = models.BooleanField(default=False)
     is_active = models.BooleanField(default=True)
     date_joined = models.DateTimeField(default=timezone.now)
+    clinic = models.ManyToManyField('Clinic', related_name='users', blank=True)
     issuer = models.ManyToManyField('Issuer', related_name='users', blank=True)  
 
     USERNAME_FIELD = 'email'
