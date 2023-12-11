@@ -1,12 +1,11 @@
 from django.shortcuts import render, redirect
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from ac2.decorators import clinic_required
 from .forms import UserRegisterForm, CreateClinic, CreateDoctor
-from .models import Issuer
-
 
 def sign_up(request):
-    '''Afterwards the Clinic and Doctor are created. They are 
+    '''Afterwards the Doctor is created. They are 
     linked to the User with a ManyToMany relationship 
     through the Issuer model. I have decided to use this
     approach to avoid multiple fields for signing up
@@ -30,30 +29,32 @@ def login(request):
 def profile(request):
     return render(request, 'users/profile.html')
 
+def create_profile(request, form_class, template_name, success_message, success_url):
+    form = form_class(request.POST or None)
+    if request.method == 'POST' and form.is_valid():
+        form.save()
+        messages.success(request, success_message)
+        return redirect(success_url)
+
+    return render(request, template_name, {'form': form})
+
 @login_required
 def create_clinic(request):
-    form = CreateClinic()
-    if request.method == 'POST':
-        form = CreateClinic(request.POST, user=request.user)
-        if form.is_valid():
-            form.save()
-            messages.success(request, f'Clínica cadastrada com sucesso!')
-            return redirect('users:profile')
-    else:
-        form = CreateClinic()
-
-    return render(request, 'users/create_clinic.html', {'form': form})
+    return create_profile(
+        request,
+        CreateClinic,
+        'users/create_clinic.html',
+        'Clínica cadastrada com sucesso!',
+        'users:create_doctor'
+    )
 
 @login_required
+@clinic_required
 def create_doctor(request):
-    form = CreateDoctor()
-    if request.method == 'POST':
-        form = CreateDoctor(request.POST)
-        if form.is_valid():
-            form.save()
-            messages.success(request, f'Médico cadastrada com sucesso!')
-            return redirect('users:profile')
-    else:
-        form = CreateDoctor()
-
-    return render(request, 'users/create_clinic.html', {'form': form})
+    return create_profile(
+        request,
+        CreateDoctor,
+        'users/create_doctor.html',
+        'Médico cadastrado com sucesso!',
+        'users:profile'
+    )
