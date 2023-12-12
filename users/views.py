@@ -29,8 +29,9 @@ def login(request):
 def profile(request):
     return render(request, 'users/profile.html')
 
-def create_profile(request, form_class, template_name, success_message, success_url):
-    form = form_class(request.POST or None)
+def create_profile(request, form_class, template_name, 
+                   success_message, success_url, user):
+    form = form_class(request.POST or None, user=user)
     if request.method == 'POST' and form.is_valid():
         form.save()
         messages.success(request, success_message)
@@ -45,7 +46,8 @@ def create_clinic(request):
         CreateClinic,
         'users/create_clinic.html',
         'Clínica cadastrada com sucesso!',
-        'users:create_doctor'
+        'users:create_doctor',
+        request.user
     )
 
 @login_required
@@ -56,5 +58,6 @@ def create_doctor(request):
         CreateDoctor,
         'users/create_doctor.html',
         'Médico cadastrado com sucesso!',
-        'users:profile'
+        'users:profile',
+        request.user
     )

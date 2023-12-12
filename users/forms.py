@@ -1,4 +1,4 @@
-from django.forms import ModelForm
+from django.forms import ModelForm, ModelChoiceField
 from django.contrib.auth.forms import UserCreationForm
 from django.utils.translation import gettext_lazy as _
 from django.db import transaction
@@ -70,7 +70,10 @@ class CreateClinic(ModelForm):
         localized_fields = '__all__'
 
 class CreateDoctor(ModelForm):
+        clinic = ModelChoiceField(queryset=Clinic.objects.none())
+
         def __init__(self, *args, **kwargs):
+            self.user = kwargs.pop('user', None)
             super(CreateDoctor, self).__init__(*args,**kwargs)
             self.helper = FormHelper()
             self.helper.form_id = 'create_doctor'
@@ -78,6 +81,7 @@ class CreateDoctor(ModelForm):
             self.helper.form_method = 'POST'
             self.helper.form_action = ''
             self.helper.add_input(Submit('submit', 'Cadastrar'))
+            self.fields['clinic'].queryset = self.user.clinic.all()
             self.helper.layout = Layout(
                 Row(
                     Column('name',css_class='form-group col-6 mb-0'),
@@ -90,7 +94,8 @@ class CreateDoctor(ModelForm):
                     Row(
                         Column('speciality',css_class='form-group col-6 mb-0'),
                     ),
-                )
+                ),
+                'clinic'
             )
 
         @transaction.atomic
@@ -107,6 +112,7 @@ class CreateDoctor(ModelForm):
                 'name': _('Nome completo'),
                 'council_number': _('CRM'),
                 'sus_number': _('Cartão Nacional de Saúde (CNS)'),
-                'speciality': _('Especialidade')
+                'speciality': _('Especialidade'),
+                'clinic': _('A qual clínica deseja associar o médico?')
             }
             localized_fields = '__all__'
