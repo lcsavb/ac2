@@ -4,6 +4,8 @@ from .managers import CustomUserManager
 from django.utils.translation import gettext_lazy as _
 from django.utils import timezone
 
+# There is a need to add a new row: which user created the entry.
+
 class Issuer(models.Model):
     doctor = models.ForeignKey('Doctor', on_delete=models.PROTECT, null=True)
     clinic = models.ForeignKey('Clinic', on_delete=models.PROTECT, null=True)
