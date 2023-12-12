@@ -70,7 +70,7 @@ class CreateClinic(ModelForm):
         localized_fields = '__all__'
 
 class CreateDoctor(ModelForm):
-        clinic = ModelChoiceField(queryset=Clinic.objects.none())
+        clinic = ModelChoiceField(queryset=Clinic.objects.none(), required=True)
 
         def __init__(self, *args, **kwargs):
             self.user = kwargs.pop('user', None)
@@ -82,11 +82,13 @@ class CreateDoctor(ModelForm):
             self.helper.form_action = ''
             self.helper.add_input(Submit('submit', 'Cadastrar'))
             self.fields['clinic'].queryset = self.user.clinic.all()
+            self.fields['clinic'].label = _('A qual clínica deseja associar o médico?')
             self.helper.layout = Layout(
                 Row(
                     Column('name',css_class='form-group col-6 mb-0'),
                     Column('council_number',css_class='form-group col-2 mb-0'),
                     Column('sus_number',css_class='form-group col-4 mb-0'),
+                    Column('clinic',css_class='form-group col-6 mb-0'),
                     css_class='form-row'
                 ),
                 Fieldset(
@@ -94,15 +96,17 @@ class CreateDoctor(ModelForm):
                     Row(
                         Column('speciality',css_class='form-group col-6 mb-0'),
                     ),
-                ),
-                'clinic'
+                )
             )
 
         @transaction.atomic
         def save(self, commit=True):
             doctor = super().save(commit=False)
+            clinic = self.cleaned_data.get('clinic')
             if commit:
                 doctor.save()
+                Issuer.objects.create(doctor=doctor, clinic=clinic)
+
             return doctor
 
         class Meta:
@@ -112,7 +116,6 @@ class CreateDoctor(ModelForm):
                 'name': _('Nome completo'),
                 'council_number': _('CRM'),
                 'sus_number': _('Cartão Nacional de Saúde (CNS)'),
-                'speciality': _('Especialidade'),
-                'clinic': _('A qual clínica deseja associar o médico?')
+                'speciality': _('Especialidade')
             }
             localized_fields = '__all__'
