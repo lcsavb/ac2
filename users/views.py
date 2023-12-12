@@ -31,6 +31,7 @@ def profile(request):
 
 def create_profile(request, form_class, template_name, 
                    success_message, success_url):
+    # Populate the form with submitted data or blank if none when GET
     form = form_class(request.POST or None, user=request.user)
     if request.method == 'POST' and form.is_valid():
         form.save()
