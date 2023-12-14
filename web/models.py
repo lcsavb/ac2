@@ -35,7 +35,7 @@ class Patient(models.Model):
     zip_code = models.CharField(max_length=9)
     telephone = models.CharField(max_length=11)
     telephone_2 = models.CharField(max_length=11)
-    user = models.ManyToManyField(settings.AUTH_USER_MODEL, related_name='patients')
+    user  = models.ManyToManyField(settings.AUTH_USER_MODEL, related_name='patients')
 
     def __str__(self):
         return self.social_security_number
