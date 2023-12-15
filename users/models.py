@@ -1,5 +1,5 @@
 from django.db import models
-from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin, BaseUserManager, Group, Permission
+from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin, Group, Permission
 from .managers import CustomUserManager
 from django.utils.translation import gettext_lazy as _
 from django.utils import timezone
@@ -9,7 +9,7 @@ from django.utils import timezone
 class Issuer(models.Model):
     doctor = models.ForeignKey('Doctor', on_delete=models.PROTECT, null=True)
     clinic = models.ForeignKey('Clinic', on_delete=models.PROTECT, null=True)
-
+    
 class Clinic(models.Model):
     name = models.CharField(max_length=100)
     #API (DataSUS) ---> https://apidadosabertos.saude.gov.br/v1/#/CNES/get_cnes_estabelecimentos. 
@@ -21,7 +21,6 @@ class Clinic(models.Model):
     zip_code = models.CharField(max_length=9)
     phone = models.CharField(max_length=100)
     doctors = models.ManyToManyField('Doctor', through='Issuer', related_name='clinics')
-    patients = models.ManyToManyField('web.Patient', related_name='clinics', through='web.PatientCareLink')
 
     def __str__(self):
         return f"{self.name} - {self.sus_number}"
@@ -31,8 +30,7 @@ class Doctor(models.Model):
     council_number = models.CharField(max_length=100)
     sus_number = models.CharField(max_length=100)
     speciality = models.CharField(max_length=100)
-    patients = models.ManyToManyField('web.Patient', through='web.PatientCareLink', related_name='doctors')
-
+    
     def __str__(self):
         return self.council_number
 

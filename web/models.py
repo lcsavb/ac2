@@ -36,6 +36,7 @@ class Patient(models.Model):
     telephone = models.CharField(max_length=11)
     telephone_2 = models.CharField(max_length=11)
     user  = models.ManyToManyField(settings.AUTH_USER_MODEL, related_name='patients')
+    visit = models.ForeignKey('Visit', on_delete=models.PROTECT, null=True)
 
     def __str__(self):
         return self.social_security_number
@@ -61,7 +62,7 @@ class Prescription(models.Model):
     medication = models.ManyToManyField(Medication, related_name='prescriptions')
     conditional_data = JSONField()
     protocol = models.ForeignKey('Protocol', on_delete=models.PROTECT)
-    visit = models.ForeignKey('Visit', on_delete=models.PROTECT)
+    
 
     def __str__(self):
         return f'{self.patient} - {self.date} - {self.diagnosis}'
@@ -78,11 +79,11 @@ class Protocol(models.Model):
 class PatientCareLink(models.Model):
     # Through this model, we will be able to link a patient to a doctor and a clinic
     patient = models.ForeignKey(Patient, on_delete=models.PROTECT)
-    clinic = models.ForeignKey(user_models.Clinic, on_delete=models.PROTECT)
-    doctor = models.ForeignKey(user_models.Doctor, on_delete=models.PROTECT)
+    issuer = models.OneToOneField(user_models.Issuer, on_delete=models.PROTECT)
     associated_date = models.DateField(default=timezone.now)
 
 class Visit(models.Model):
     date = models.DateField()
     time = models.TimeField()
-    link = models.ForeignKey(PatientCareLink, on_delete=models.PROTECT)
+    link = models.OneToOneField(PatientCareLink, on_delete=models.PROTECT)
+    prescription = models.ForeignKey(Prescription, on_delete=models.PROTECT, null=True)

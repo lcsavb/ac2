@@ -1,0 +1,22 @@
+{% extends 'web/base.html' %}
+
+{% load crispy_forms_tags %}
+
+{% block content %}
+<div class="container card card-rounded" style="max-width: 75vw;">
+    <div><h3>Cadastro de Paciente</h3></div><hr>
+    <!--
+        There is a bug here, the crispy form should automatically render the form tags and
+    the submit button, but it is not doing it for some reason I cannot understand.
+    I will try to fix it later.
+    -->
+    <form method="post">
+        {% csrf_token %}
+        {{ form|crispy }}
+        <button type="submit" class="btn btn-primary">Submit</button>
+    </form>
+    </div>
+</div>
+
+
+{% endblock %}
