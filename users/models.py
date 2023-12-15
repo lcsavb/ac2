@@ -21,7 +21,6 @@ class Clinic(models.Model):
     zip_code = models.CharField(max_length=9)
     phone = models.CharField(max_length=100)
     doctors = models.ManyToManyField('Doctor', through='Issuer', related_name='clinics')
-    patients = models.ManyToManyField('web.Patient', related_name='clinics', through='web.PatientCareLink')
 
     def __str__(self):
         return f"{self.name} - {self.sus_number}"
@@ -31,8 +30,7 @@ class Doctor(models.Model):
     council_number = models.CharField(max_length=100)
     sus_number = models.CharField(max_length=100)
     speciality = models.CharField(max_length=100)
-    patients = models.ManyToManyField('web.Patient', through='web.PatientCareLink', related_name='doctors')
-
+    
     def __str__(self):
         return self.council_number
 

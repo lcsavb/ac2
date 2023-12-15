@@ -78,8 +78,7 @@ class Protocol(models.Model):
 class PatientCareLink(models.Model):
     # Through this model, we will be able to link a patient to a doctor and a clinic
     patient = models.ForeignKey(Patient, on_delete=models.PROTECT)
-    clinic = models.ForeignKey(user_models.Clinic, on_delete=models.PROTECT)
-    doctor = models.ForeignKey(user_models.Doctor, on_delete=models.PROTECT)
+    issuer = models.OneToOneField(user_models.Issuer, on_delete=models.PROTECT)
     associated_date = models.DateField(default=timezone.now)
 
 class Visit(models.Model):
