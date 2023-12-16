@@ -105,7 +105,8 @@ class CreateDoctor(ModelForm):
             clinic = self.cleaned_data.get('clinic')
             if commit:
                 doctor.save()
-                Issuer.objects.create(doctor=doctor, clinic=clinic)
+                new_issuer = Issuer.objects.create(doctor=doctor, clinic=clinic)
+                self.user.issuer.add(new_issuer)
 
             return doctor
 

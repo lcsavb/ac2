@@ -9,6 +9,9 @@ from django.utils import timezone
 class Issuer(models.Model):
     doctor = models.ForeignKey('Doctor', on_delete=models.PROTECT, null=True)
     clinic = models.ForeignKey('Clinic', on_delete=models.PROTECT, null=True)
+
+    def __str__(self):
+        return f"{self.clinic} - {self.doctor}"
     
 class Clinic(models.Model):
     name = models.CharField(max_length=100)
@@ -23,7 +26,7 @@ class Clinic(models.Model):
     doctors = models.ManyToManyField('Doctor', through='Issuer', related_name='clinics')
 
     def __str__(self):
-        return f"{self.name} - {self.sus_number}"
+        return f"{self.name}"
 
 class Doctor(models.Model):
     name = models.CharField(max_length=100)
@@ -32,7 +35,7 @@ class Doctor(models.Model):
     speciality = models.CharField(max_length=100)
     
     def __str__(self):
-        return self.council_number
+        return f"{self.name} - (CRM {self.council_number})"
 
 
 class CustomUser(AbstractBaseUser, PermissionsMixin):
