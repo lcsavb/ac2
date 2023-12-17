@@ -1,6 +1,5 @@
 from django.shortcuts import render, redirect
 from django.contrib import messages
-from django.http import HttpResponse
 from .forms import CreatePatient
 
 def home(request):
@@ -8,7 +7,6 @@ def home(request):
 
 def create_patient(request):
     form = CreatePatient(request.POST or None, user = request.user)
-    print(request.user.issuer.all())
     if request.method == 'POST' and form.is_valid():
         form.save()
         messages.success(request, 'Paciente criado com sucesso')

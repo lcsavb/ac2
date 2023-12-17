@@ -37,9 +37,10 @@ class Patient(models.Model):
     telephone_2 = models.CharField(max_length=11)
     user  = models.ManyToManyField(settings.AUTH_USER_MODEL, related_name='patients')
     visit = models.ForeignKey('Visit', on_delete=models.PROTECT, null=True)
+    issuer = models.ManyToManyField(user_models.Issuer, related_name='patients')
 
     def __str__(self):
-        return self.social_security_number
+        return f"{self.name} - {self.social_security_number}"
 
 class Medication(models.Model):
     name = models.CharField(max_length=100)
