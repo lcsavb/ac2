@@ -1,6 +1,6 @@
 from django import forms
 from django.db import transaction
-from .models import Patient, PatientCareLink
+from .models import Patient
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Layout, Fieldset, Row, Column, Submit
 from users.models import Issuer
@@ -96,5 +96,4 @@ class CreatePatient(forms.ModelForm):
                 issuer = self.cleaned_data.get('issuers')
                 user = self.user
                 print("creating PatientCareLink with issuer =", issuer, "and user =", user)
-                PatientCareLink.objects.create(patient=patient, issuer=issuer, user=user)
             return patient

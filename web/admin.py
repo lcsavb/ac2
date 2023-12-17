@@ -1,8 +1,8 @@
 from django.contrib import admin
-from .models import Disease, Patient, Medication, Prescription, Protocol, PatientCareLink, Visit
+from .models import Disease, Patient, Medication, Prescription, Protocol, Visit
 
 # List of models
-models = [Disease, Patient, Medication, Prescription, Protocol, PatientCareLink, Visit]
+models = [Disease, Patient, Medication, Prescription, Protocol, Visit]
 
 # Loop to create an admin class and register each model
 for model in models:
