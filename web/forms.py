@@ -1,10 +1,11 @@
 from typing import Any
 from django import forms
 from django.db import transaction
-from .models import Patient
+from django.utils.translation import gettext_lazy as _
+from .models import Patient, Prescription
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Layout, Fieldset, Row, Column, Submit
-from django.utils.translation import gettext_lazy as _
+
 
 class CreatePatient(forms.ModelForm):
    
@@ -41,6 +42,8 @@ class CreatePatient(forms.ModelForm):
         return patient
 
     class Meta:
+        model = Patient        
+        
         labels = {
             'name': 'Nome', 'age': 'Idade', 'gender': 'Gênero',
             'mother_name': 'Nome da mãe', 'disabled': 'Deficiente',
@@ -53,8 +56,6 @@ class CreatePatient(forms.ModelForm):
             'issuer': 'Emissor'
         }
 
-        model = Patient
-
         fields = ['name', 'age', 'gender', 'mother_name', 
                   'disabled', 'responsible', 'identity', 
                   'weight', 'height', 'ethnicity',
@@ -64,4 +65,75 @@ class CreatePatient(forms.ModelForm):
 
         localized_fields = '__all__'
 
+class CreatePrescription(forms.Form):
+    def __init__(self, *args, **kwargs):
+        self.user = kwargs.pop('user', None)
+        super(CreatePrescription, self).__init__(*args, **kwargs)
 
+        # Dynamic fields - Each of the 4 possible drugs have 6 months of posology and qty.
+
+        drugs = ['01', '02', '03', '04']
+        months = ['01', '02', '03', '04', '05', '06']
+
+        for d in drugs:
+            for m in months:
+                posology_field_name = f'{d}_posologia_{m}'
+                posology_field_label = f'Posologia - Medicamento {d} - Mês {m}'
+                qty_field_name = f'{d}_qtd_med{d}_mes{m}'
+                qty_field_label = f'Qtde. - Medicamento {d} - Mês {m}'
+                self.fields[posology_field_name] = forms.CharField(label=posology_field_label)
+                self.fields[qty_field_name] = forms.CharField(label=qty_field_label)
+
+        self.fields['qtd_med1_mes1'] = forms.CharField(required=True, label="Qtde. 1 mês")
+
+
+    first_time =forms.ChoiceField(initial={False}, label='Protocolo 1ª vez: ',
+                                       choices=[(False, 'Não'),
+                                                (True, 'Sim')],
+                                                widget=forms.Select(attrs={'class':'custom-select'}))
+
+    icd = forms.CharField(required=True, label='CID',widget=forms.TextInput(attrs={'readonly':'readonly', 'size': 5}))
+    diagnosis = forms.CharField(required=True, label='Diagnóstico',widget=forms.TextInput(attrs={'readonly':'readonly'}))
+    anamnesis = forms.CharField(required=True, label='Anamnese')
+    filled_by = forms.ChoiceField(initial={'paciente'},
+                                       choices=[('paciente', 'Paciente'),
+                                                ('mae', 'Mãe'),
+                                                ('responsavel', 'Responsável'),
+                                                ('medico', 'Médico')],
+                                                widget=forms.Select(attrs={'class':'custom-select'}))
+                                                
+    previous_treatment = forms.ChoiceField(
+        choices=((True, 'Sim'), (False, 'Não')),
+        label='Fez tratamento prévio?',
+        initial=False,
+        widget=forms.Select(attrs={'class':'custom-select'})
+    )
+    previous_treatment_description = forms.CharField(
+        label='Descrição dos tratamentos prévios',
+        required=False, widget=forms.TextInput(attrs={'class':'cond-trat'})
+    )
+    first_date = forms.DateField(
+        required=True, label='Data',
+        widget=forms.DateInput(format='%d/%m/%Y'),
+        input_formats=['%d/%m/%Y', ]
+    )
+
+    report = forms.CharField(
+        label='Relatório',
+        required=False, widget=forms.Textarea(attrs={'class':'relatorio', 'rows': '6', 'width': '100%'})
+    )
+
+    report_required = forms.ChoiceField(initial={False}, label='Emissão de relatório: ',
+                                       choices=[(False, 'Não'),
+                                                (True, 'Sim')],
+                                                widget=forms.Select(attrs={'class':'custom-select emitir-relatorio'}))
+
+    exams_required = forms.ChoiceField(initial={False}, label='Emissão de exames: ',
+                                       choices=[(False, 'Não'),
+                                                (True, 'Sim')],
+                                                widget=forms.Select(attrs={'class':'custom-select'}))
+
+    exams = forms.CharField(
+        label='Exames',
+        required=False, widget=forms.Textarea(attrs={'class':'exames', 'rows': '6'})
+    )

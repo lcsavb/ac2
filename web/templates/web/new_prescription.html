@@ -1,7 +1,64 @@
-{% extends "web/base.html" %} 
+{% extends 'web/base.html' %}
+{% load crispy_forms_tags %}
+{% load static %}
 
 {% block content %}
 
-<h1> New prescription </h1>
 
+<div class="container-fluid">
+
+
+  <form method="POST"> {% csrf_token %}
+
+    
+    <div class="card rounded" style="padding: 1.5rem;">   
+
+    <hr>
+    
+    <div><h3>Dados do processo</h3></div>
+
+    <div class="form-row">
+        <div class="col-sm-2"> {{ form.first_date|as_crispy_field }} </div>
+    </div>
+
+    <div class="form-row">
+        <div class="col-1">{{ form.icd|as_crispy_field }}</div>
+        <div class="col-11">{{ form.diagnosis|as_crispy_field }}</div>
+    </div>
+
+    <div class="form-row">
+            <div class="col-12">{{ form.anamnesis|as_crispy_field }}</div>
+    </div>
+
+
+
+    <div class="form-row">
+            <div class="col-3" id="previous_treatment_selection">{{ form.previous_treatment|as_crispy_field }}</div>
+            <div class="col-9 d-none" id="previous_treatments_description">{{ form.previous_treatment_description|as_crispy_field }}</div>
+    </div>
+
+    <div class="form-row">
+        <div class="col-md-2"> {{ form.filled_by|as_crispy_field }}</div>
+        
+   </div>
+
+    <div class="form-row">
+            <button class="btn btn-outline-info" type="submit">Cadastrar</button>
+        </div>
+    </div>    
+
+  </form>
+</div>
+
+
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.mask/1.14.16/jquery.mask.min.js" integrity="sha256-Kg2zTcFO9LXOc7IwcBx1YeUBJmekycsnTsq2RuFHSZU=" crossorigin="anonymous"></script>
+<script src="{% static 'web/js/processo.js' %}"></script>
+<script src="{% static 'web/js/mascaras.js' %}"></script>
+<script src="{% static 'web/js/med.js' %}"></script>
+<script src="{% static 'web/js/documentosAdicionais.js' %}"></script>
+<script src="{% static 'web/js/emitirExames.js' %}"></script>
+<script src="{% static 'web/js/mostrarProtocolo.js' %}"></script>
 {% endblock %}

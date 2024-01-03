@@ -1,6 +1,6 @@
 from django.shortcuts import render, redirect
 from django.contrib import messages
-from .forms import CreatePatient
+from .forms import CreatePatient, CreatePrescription
 
 def home(request):
     return render (request, 'web/home.html')
@@ -15,5 +15,10 @@ def create_patient(request):
     return render(request, 'web/create_patient.html', {'form': form})
 
 def new_prescription(request):
-    return render (request, 'web/new_prescription.html')
+    form = CreatePrescription(request.POST or None, user = request.user)
+    if request.method == 'POST' and form.is_valid():
+        form.save()
+        messages.success(request, 'Prescrição criada com sucesso')
+        return redirect('home')
+    return render (request, 'web/new_prescription.html', {'form': form})
 
