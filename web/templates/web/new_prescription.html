@@ -30,11 +30,16 @@
             <div class="col-12">{{ form.anamnesis|as_crispy_field }}</div>
     </div>
 
-
-
     <div class="form-row">
             <div class="col-3" id="previous_treatment_selection">{{ form.previous_treatment|as_crispy_field }}</div>
             <div class="col-9 d-none" id="previous_treatments_description">{{ form.previous_treatment_description|as_crispy_field }}</div>
+    </div>
+
+    <div class="form-row">
+            <div class="col-3" id="drug_01">{{ form.drug_01|as_crispy_field }}</div>
+            <div class="col-6" id="posology_drug_01_month_01">{{ form.posology_drug_01_month_01|as_crispy_field }}</div>
+            <div class="col-3" id="qty_drug_01_month_01">{{ form.qty_drug_01_month_01|as_crispy_field }}</div>
+
     </div>
 
     <div class="form-row">

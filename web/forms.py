@@ -75,16 +75,35 @@ class CreatePrescription(forms.Form):
         drugs = ['01', '02', '03', '04']
         months = ['01', '02', '03', '04', '05', '06']
 
-        for d in drugs:
-            for m in months:
-                posology_field_name = f'{d}_posologia_{m}'
-                posology_field_label = f'Posologia - Medicamento {d} - Mês {m}'
-                qty_field_name = f'{d}_qtd_med{d}_mes{m}'
-                qty_field_label = f'Qtde. - Medicamento {d} - Mês {m}'
-                self.fields[posology_field_name] = forms.CharField(label=posology_field_label)
-                self.fields[qty_field_name] = forms.CharField(label=qty_field_label)
+        self.fields.update(
+            {
+                f'drug_{d}': forms.CharField(label=f'Medicamento {d}')
+                for d in drugs
+            }
+        )
 
-        self.fields['qtd_med1_mes1'] = forms.CharField(required=True, label="Qtde. 1 mês")
+        self.fields.update(
+            {
+                f'posology_drug_{d}_month_{m}': forms.CharField(label=f'Posologia - Medicamento {d} - Mês {m}')
+                for d in drugs
+                for m in months
+            }
+        )
+
+        self.fields.update(
+            {
+                f'qty_drug_{d}_month_{m}': forms.CharField(label=f'Qtde. - Medicamento {d} - Mês {m}')
+                for d in drugs
+                for m in months
+            }
+        )
+
+    @transaction.atomic
+    def save(self, commit=True):
+        prescription = Prescription()
+        if commit:
+            prescription.save()
+        return prescription
 
 
     first_time =forms.ChoiceField(initial={False}, label='Protocolo 1ª vez: ',
@@ -92,8 +111,8 @@ class CreatePrescription(forms.Form):
                                                 (True, 'Sim')],
                                                 widget=forms.Select(attrs={'class':'custom-select'}))
 
-    icd = forms.CharField(required=True, label='CID',widget=forms.TextInput(attrs={'readonly':'readonly', 'size': 5}))
-    diagnosis = forms.CharField(required=True, label='Diagnóstico',widget=forms.TextInput(attrs={'readonly':'readonly'}))
+    icd = forms.CharField(required=True, label='CID',widget=forms.TextInput(attrs={'size': 5}))
+    diagnosis = forms.CharField(required=True, label='Diagnóstico',widget=forms.TextInput)
     anamnesis = forms.CharField(required=True, label='Anamnese')
     filled_by = forms.ChoiceField(initial={'paciente'},
                                        choices=[('paciente', 'Paciente'),
