@@ -13,12 +13,20 @@
     
     <div class="card rounded" style="padding: 1.5rem;">   
 
-    <div><h3>Dados do paciente</h3></div>
-
-    <select id="issuerSelect" class="form-control col-3" data-url="{% url 'get-issuers' %}"></select>
-    <select id="patientSelect" class="form-control col-8" data-url="{% url 'get-patients' issuer_id=0 %}"></select>    
+    <div class="mb-3"><h3>Dados do paciente</h3>
+      <div class="form-row">
+        <div class="col-4">
+          <select id="issuerSelect" class="form-control" data-url="{% url 'get-issuers' %}"></select>
+      </div>
+      
+      <div class="col-8">
+          <select id="patientSelect" class="form-control d-none" data-url="{% url 'get-patients' issuer_id=0 %}"></select>   
+      </div>
+      </div>
+    </div>
     
-    <div><h3>Dados do processo</h3></div>
+    
+    <div><h3>Dados do processo</h3>
 
     <div class="form-row">
         <div class="col-sm-2"> {{ form.first_date|as_crispy_field }} </div>
@@ -53,7 +61,9 @@
     <div class="form-row">
             <button class="btn btn-outline-info" type="submit">Cadastrar</button>
         </div>
-    </div>    
+    </div>
+    
+  </div>
 
   </form>
 </div>
@@ -64,5 +74,5 @@
 {% block scripts %}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.mask/1.14.16/jquery.mask.min.js" integrity="sha256-Kg2zTcFO9LXOc7IwcBx1YeUBJmekycsnTsq2RuFHSZU=" crossorigin="anonymous"></script>
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-<script src="{% static 'web/js/issuers_query.js' %}"></script>
+<script src="{% static 'web/js/issuersQuery.js' %}"></script>
 {% endblock %}
