@@ -16,15 +16,17 @@
     <div class="mb-3"><h3>Dados do paciente</h3>
       <div class="form-row">
         <div class="col-4">
-          <select id="issuerSelect" class="form-control" data-url="{% url 'get-issuers' %}"></select>
+          <select id="issuer-select" class="form-control" data-url="{% url 'get-issuers' %}"></select>
       </div>
       
       <div class="col-8">
-          <select id="patientSelect" class="form-control d-none" data-url="{% url 'get-patients' issuer_id=0 %}"></select>   
+          <select id="patient-select" class="form-control d-none" data-url="{% url 'get-patients' issuer_id=0 %}"></select>   
       </div>
       </div>
     </div>
     
+    <input type="hidden" id="id_patient_id" name="patient_id">
+    <input type="hidden" id="id_issuer_id" name="issuer_id">
     
     <div><h3>Dados do processo</h3>
 

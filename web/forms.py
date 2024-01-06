@@ -1,8 +1,7 @@
-from typing import Any
 from django import forms
 from django.db import transaction
 from django.utils.translation import gettext_lazy as _
-from .models import Patient, Prescription
+from .models import Patient, Prescription, Disease
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Layout, Fieldset, Row, Column, Submit
 
@@ -77,14 +76,14 @@ class CreatePrescription(forms.Form):
 
         self.fields.update(
             {
-                f'drug_{d}': forms.CharField(label=f'Medicamento {d}')
+                f'drug_{d}': forms.CharField(label=f'Medicamento {d}', required=False)
                 for d in drugs
             }
         )
 
         self.fields.update(
             {
-                f'posology_drug_{d}_month_{m}': forms.CharField(label=f'Posologia - Medicamento {d} - Mês {m}')
+                f'posology_drug_{d}_month_{m}': forms.CharField(label=f'Posologia - Medicamento {d} - Mês {m}', required=False)
                 for d in drugs
                 for m in months
             }
@@ -92,67 +91,62 @@ class CreatePrescription(forms.Form):
 
         self.fields.update(
             {
-                f'qty_drug_{d}_month_{m}': forms.CharField(label=f'Qtde. - Medicamento {d} - Mês {m}')
+                f'qty_drug_{d}_month_{m}': forms.CharField(label=f'Qtde. - Medicamento {d} - Mês {m}', required=False)
                 for d in drugs
                 for m in months
             }
         )
 
-    @transaction.atomic
-    def save(self, commit=True):
-        prescription = Prescription()
-        if commit:
-            prescription.save()
-        return prescription
-
-
-    first_time =forms.ChoiceField(initial={False}, label='Protocolo 1ª vez: ',
+    first_time = forms.ChoiceField(initial={False}, label='Protocolo 1ª vez: ',
                                        choices=[(False, 'Não'),
                                                 (True, 'Sim')],
-                                                widget=forms.Select(attrs={'class':'custom-select'}))
-
-    icd = forms.CharField(required=True, label='CID',widget=forms.TextInput(attrs={'size': 5}))
-    diagnosis = forms.CharField(required=True, label='Diagnóstico',widget=forms.TextInput)
-    anamnesis = forms.CharField(required=True, label='Anamnese')
+                                       required=False,
+                                       widget=forms.Select(attrs={'class':'custom-select'}))
+        
+    first_date = forms.DateField(required=False, label='Data da 1ª prescrição: ', 
+                                 widget=forms.DateInput(attrs={'type': 'date'}))
+    icd = forms.CharField(required=False, label='CID',widget=forms.TextInput(attrs={'size': 5}))
+    diagnosis = forms.CharField(required=False, label='Diagnóstico',widget=forms.TextInput)
+    anamnesis = forms.CharField(required=False, label='Anamnese')
     filled_by = forms.ChoiceField(initial={'paciente'},
-                                       choices=[('paciente', 'Paciente'),
-                                                ('mae', 'Mãe'),
-                                                ('responsavel', 'Responsável'),
-                                                ('medico', 'Médico')],
-                                                widget=forms.Select(attrs={'class':'custom-select'}))
-                                                
+                                  choices=[('paciente', 'Paciente'),
+                                           ('mae', 'Mãe'),
+                                           ('responsavel', 'Responsável'),
+                                           ('medico', 'Médico')],
+                                  required=False,
+                                  widget=forms.Select(attrs={'class':'custom-select'}))
     previous_treatment = forms.ChoiceField(
         choices=((True, 'Sim'), (False, 'Não')),
         label='Fez tratamento prévio?',
         initial=False,
+        required=False,
         widget=forms.Select(attrs={'class':'custom-select'})
     )
     previous_treatment_description = forms.CharField(
         label='Descrição dos tratamentos prévios',
-        required=False, widget=forms.TextInput(attrs={'class':'cond-trat'})
-    )
-    first_date = forms.DateField(
-        required=True, label='Data',
-        widget=forms.DateInput(format='%d/%m/%Y'),
-        input_formats=['%d/%m/%Y', ]
-    )
+        required=False
+    )  
+    issuer_id = forms.IntegerField(required=True)
+    patient_id = forms.IntegerField(required=True)
 
-    report = forms.CharField(
-        label='Relatório',
-        required=False, widget=forms.Textarea(attrs={'class':'relatorio', 'rows': '6', 'width': '100%'})
-    )
+    @transaction.atomic
+    def save(self, commit=True):
+        data = self.cleaned_data
+        print(data)
+        prescription = Prescription()
+        prescription.first_time = data.get('first_time')
+        prescription.icd = data.get('icd')
+        prescription.issuer_id = data.get('issuer_id')
 
-    report_required = forms.ChoiceField(initial={False}, label='Emissão de relatório: ',
-                                       choices=[(False, 'Não'),
-                                                (True, 'Sim')],
-                                                widget=forms.Select(attrs={'class':'custom-select emitir-relatorio'}))
+        # that should be removed over, just for testint purposes
+        prescription.disease = Disease.objects.get(pk=1)
 
-    exams_required = forms.ChoiceField(initial={False}, label='Emissão de exames: ',
-                                       choices=[(False, 'Não'),
-                                                (True, 'Sim')],
-                                                widget=forms.Select(attrs={'class':'custom-select'}))
+        prescription.diagnosis = data.get('diagnosis')
+        prescription.anamnesis = data.get('anamnesis')
+        prescription.filled_by = data.get('filled_by')
+        prescription.previous_treatment = data.get('previous_treatment')
 
-    exams = forms.CharField(
-        label='Exames',
-        required=False, widget=forms.Textarea(attrs={'class':'exames', 'rows': '6'})
-    )
+        if commit:
+            prescription.save()
+
+        return prescription

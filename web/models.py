@@ -53,7 +53,7 @@ class Medication(models.Model):
 class Prescription(models.Model):
     anamnesis = models.TextField(max_length=1000)
     disease = models.ForeignKey('Disease', on_delete=models.PROTECT)
-    posology = JSONField()
+    posology = JSONField(null=True)
     previous_treatment = BooleanField(default=False)
     previous_medications = models.TextField(max_length=1000)
     date = models.DateField(default=timezone.now)
@@ -61,7 +61,7 @@ class Prescription(models.Model):
     patient = models.ForeignKey('Patient', on_delete=models.PROTECT)
     issuer = models.ForeignKey(user_models.Issuer, on_delete=models.PROTECT, related_name='prescriptions')
     medication = models.ManyToManyField(Medication, related_name='prescriptions')
-    conditional_data = JSONField()
+    conditional_data = JSONField(null=True)
     protocol = models.ForeignKey('Protocol', on_delete=models.PROTECT)
     
 

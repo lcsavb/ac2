@@ -1,12 +1,12 @@
 (() => {
 
-    var issuerSelect = $('#issuerSelect');
-    var patientSelect = $('#patientSelect');
+    var issuerSelect = $('#issuer-select');
+    var patientSelect = $('#patient-select');
     var issuerUrl = issuerSelect.data('url');
     // the slice method removes the last two characters from the URL, because we don't need the issuer ID
     // and that is a workaround to avoid hardcoding the URL in the JS file, but retrieving from the Django
     // templating system
-    var patientUrl = $('#patientSelect').data('url').slice(0, -2);  
+    var patientUrl = patientSelect.data('url').slice(0, -2);  
 
     $.ajax({
         url: issuerUrl, 
@@ -35,6 +35,18 @@
                 });
             }
         });
+    });
+
+
+    // The selected values of issuer and patient are stored in hidden fields, 
+    // so that they can be sent to the server
+
+    issuerSelect.change(function() {
+        $('#id_issuer_id').val($(this).val());
+    });
+    
+    patientSelect.change(function() {
+        $('#id_patient_id').val($(this).val());
     });
 
 })();
