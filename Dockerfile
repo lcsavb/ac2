@@ -18,4 +18,8 @@ COPY --from=builder /lib/ld-musl-x86_64.so.1 /lib/ld-musl-x86_64.so.1
 COPY --from=builder /usr/lib/libpython${PYTHON_VERSION}.so.1.0 /usr/lib/libpython${PYTHON_VERSION}.so.1.0
 COPY --from=builder /usr/lib/python${PYTHON_VERSION}/ /usr/lib/python${PYTHON_VERSION}/
 
-ENTRYPOINT ["/python3"]
+ADD chroot-pdftk /
+
+
+
+ENTRYPOINT ["./startup.sh"]

@@ -4,11 +4,13 @@
 
 let
   dockerTools = pkgs.dockerTools;
-  currentDir = ./.;
-  pythonTiny = dockerTools.pullImage {
-    imageName = "docker.io/lcsavb/python-tiny";
-    sha256 = "sha256-lPenxSMmed8Ab+jy9en2UaMnBcCYlR1/CYOxh8M0htk=";
-    imageDigest = "sha256:9d5d8fc0f7592c64c23d4028a7acc9e8a46bb5789620368cd917124f06e4eaf9";
+
+    currentDir = ./.;
+
+  base = dockerTools.pullImage {
+    imageName = "docker.io/lcsavb/autocusto-base-image";
+    sha256 = "sha256-orLq7d1VuVhioZpN4MFHZkk9SipjS5/N61penY7nTNo=";
+    imageDigest = "sha256:3ceed35ade29d4b02dea8e1135b4c07d1ca3d481497e011695c964ac9c283d9b";
   };
 
   pypdftk = pkgs.python3Packages.buildPythonPackage rec {
@@ -21,42 +23,32 @@ let
     doCheck = false;
   };
 
-  crispyForms = pkgs.python3Packages.buildPythonApplication rec {
-    pname = "django-crispy-forms";
-    version = "2.1";  # use the version you need
-
-    src = pkgs.python3Packages.fetchPypi {
-      inherit pname version;
-      sha256 = "sha256-TX7EMZM61NS1xabeSlhNJGE8NH25rBaHI8mq9jr0u5Y=";  # replace with the correct sha256
-    };
-
-    format = "pyproject";
-
-    doCheck = false;
-  };
-
-  pythonEnv = pkgs.python311.withPackages (ps: [
-    ps.pip
-    ps.django
-    ps.django_extensions
-    crispyForms
+  pythonEnv = pkgs.python311.withPackages (ps: with ps; [
+    django
+    django_extensions
+    django-crispy-forms
+    django-crispy-bootstrap4
     pypdftk
   ]);
 in
 pkgs.dockerTools.buildImage {
   name = "ac2";
   tag = "dev";
-  fromImage = pythonTiny;
+  fromImage = base;
   contents = [ 
-    currentDir
-    pkgs.bash
     pythonEnv
-    pkgs.pdftk
+    pkgs.bash
+    pkgs.coreutils
   ];
-  config = {
-    Cmd = [ "/bin/sh" "-c" "./startup.sh" ];    
+  runAsRoot = ''
+    mkdir -p /app
+    cp -r ${currentDir}/* /app
+  '';
+  config = {    
+    WorkingDir = "/app";
     ExposedPorts = {
       "8000/tcp" = {};
     };
+    Cmd = [ "./startup.sh" ];
   };
 }
