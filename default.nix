@@ -3,11 +3,8 @@
 }:
 
 let
-  dockerTools = pkgs.dockerTools;
 
-  currentDir = "./.";
-
-  base = dockerTools.pullImage {
+  base = pkgs.dockerTools.pullImage {
     imageName = "docker.io/lcsavb/autocusto-base-image";
     sha256 = "sha256-orLq7d1VuVhioZpN4MFHZkk9SipjS5/N61penY7nTNo=";
     imageDigest = "sha256:3ceed35ade29d4b02dea8e1135b4c07d1ca3d481497e011695c964ac9c283d9b";
@@ -30,25 +27,33 @@ let
     django-crispy-bootstrap4
     pypdftk
   ]);
+
 in
+
 pkgs.dockerTools.buildImage {
   name = "ac2";
   tag = "dev";
   fromImage = base;
   contents = [
-    currentDir 
     pythonEnv
     pkgs.bash
     pkgs.coreutils
   ];
+
   runAsRoot = ''
     mkdir -p /app
+    cp -r ${./.}/* /app/
+    chmod +x /app/startup.sh
   '';
+
   config = {    
     WorkingDir = "/app";
     ExposedPorts = {
       "8000/tcp" = {};
     };
-    Cmd = [ "/bin/sh" "-c" "./startup.sh" ];    
+    Cmd = [ "/bin/sh" "-c" 
+    "python manage.py makemigrations && python manage.py migrate && python manage.py runserver 0.0.0.0:8000" 
+    ];   
   };
+
 }
