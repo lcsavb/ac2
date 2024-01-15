@@ -5,7 +5,7 @@
 let
   dockerTools = pkgs.dockerTools;
 
-    currentDir = ./.;
+  currentDir = "./.";
 
   base = dockerTools.pullImage {
     imageName = "docker.io/lcsavb/autocusto-base-image";
@@ -35,20 +35,20 @@ pkgs.dockerTools.buildImage {
   name = "ac2";
   tag = "dev";
   fromImage = base;
-  contents = [ 
+  contents = [
+    currentDir 
     pythonEnv
     pkgs.bash
     pkgs.coreutils
   ];
   runAsRoot = ''
     mkdir -p /app
-    cp -r ${currentDir}/* /app
   '';
   config = {    
     WorkingDir = "/app";
     ExposedPorts = {
       "8000/tcp" = {};
     };
-    Cmd = [ "./startup.sh" ];
+    Cmd = [ "/bin/sh" "-c" "./startup.sh" ];    
   };
 }

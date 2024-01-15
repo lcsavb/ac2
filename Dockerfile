@@ -21,5 +21,3 @@ COPY --from=builder /usr/lib/python${PYTHON_VERSION}/ /usr/lib/python${PYTHON_VE
 ADD chroot-pdftk /
 
 
-
-ENTRYPOINT ["./startup.sh"]
